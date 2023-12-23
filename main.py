@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 x_root_path = "https://x.com/"
+twitter_root_path = "https://twitter.com/"
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -30,18 +31,23 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    root_path = ""
     if message.author.name == "fxtwitter converter" and message.author.bot == True:
-        return 
-	
+        return
+
     if x_root_path in message.content and message.content != x_root_path:
-        fx_converted_link = get_x_link_from_msg(message.content).replace(x_root_path, "https://fxtwitter.com/")
-        await message.channel.send(f"Here, have an embed for that:\n{fx_converted_link}", reference=message.to_reference(),mention_author=False)
+        root_path = x_root_path
+    elif twitter_root_path in message.content and message.content != twitter_root_path:
+        root_path = twitter_root_path
+	
+    if root_path != "":
+        fx_converted_link = get_xtwitter_link_from_msg(message.content, root_path).replace(root_path, "https://fxtwitter.com/")
+        await message.channel.send(f"Here, have an embed for that:\n{fx_converted_link}", reference=message.to_reference(), mention_author=False)
 		
-def get_x_link_from_msg(message):
+def get_xtwitter_link_from_msg(message, root_path):
     split_msg = message.split()
-    print(split_msg)
     for item in split_msg:
-        if x_root_path in item:
+        if root_path in item:
             return item
 
 bot.run(DISCORD_TOKEN)
