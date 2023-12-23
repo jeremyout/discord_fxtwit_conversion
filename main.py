@@ -41,13 +41,15 @@ async def on_message(message):
         root_path = twitter_root_path
 	
     if root_path != "":
-        fx_converted_link = get_xtwitter_link_from_msg(message.content, root_path).replace(root_path, "https://fxtwitter.com/")
-        await message.channel.send(f"Here, have an embed for that:\n{fx_converted_link}", reference=message.to_reference(), mention_author=False)
+        fx_converted_links = "\n".join(get_xtwitter_links_from_msg(message.content, root_path)).replace(root_path, "https://fxtwitter.com/")
+        await message.channel.send(f"Here, have an embed for that:\n{fx_converted_links}", reference=message.to_reference(), mention_author=False)
 		
-def get_xtwitter_link_from_msg(message, root_path):
+def get_xtwitter_links_from_msg(message, root_path):
+    links = []
     split_msg = message.split()
     for item in split_msg:
         if root_path in item:
-            return item
+            links.append(item)
+    return links
 
 bot.run(DISCORD_TOKEN)
