@@ -44,7 +44,8 @@ async def on_message(message):
 	
     if x_or_twitter_link_present == True:
         fx_converted_links = convert_links_to_fxtwitter_root(message.content)
-        await message.channel.send(f"Here, have an embed for that:\n{fx_converted_links}", reference=message.to_reference(), mention_author=False)
+        await send_converted_links(message, fx_converted_links)
+
 		
 def get_xtwitter_links_from_msg(message):
     links = []
@@ -66,6 +67,41 @@ def convert_links_to_fxtwitter_root(message):
         
         if path != "":
             converted_links.append(link.replace(path, fxtwitter_root_path))
-    return "\n".join(converted_links)
+    return converted_links
+
+async def send_converted_links(message, fx_converted_links):
+        newline = "\n"
+        link_count = len(fx_converted_links)
+        converted_link_queue = []
+        
+        if link_count == 1:
+            await message.channel.send(f"Here, have an embed for that:\n{newline.join(fx_converted_links)}", 
+                                       reference=message.to_reference(), 
+                                       mention_author=False)
+        elif link_count <= 5:
+            await message.channel.send(f"Here, have some embeds for those:\n{newline.join(fx_converted_links)}", 
+                                       reference=message.to_reference(), 
+                                       mention_author=False)
+        else:
+            links_in_queue = 0
+            first_msg_sent = False
+            for link in fx_converted_links:
+                converted_link_queue.append(link)
+                links_in_queue += 1
+                if links_in_queue == 5:
+                    links_in_queue = 0
+                    if first_msg_sent == False:
+                        await message.channel.send(f"Here, have some embeds for those:\n{newline.join(converted_link_queue)}", 
+                                                   reference=message.to_reference(), 
+                                                   mention_author=False)
+                        first_msg_sent = True
+                        converted_link_queue.clear()
+                    else:
+                        await message.channel.send(f"\n{newline.join(converted_link_queue)}")
+                        converted_link_queue.clear()
+            if len(converted_link_queue) != 0:
+                await message.channel.send(f"\n{newline.join(converted_link_queue)}")
+                converted_link_queue.clear()
+                
 
 bot.run(DISCORD_TOKEN)
