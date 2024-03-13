@@ -75,11 +75,11 @@ async def send_converted_links(message, fx_converted_links):
         converted_link_queue = []
         
         if link_count == 1:
-            await message.channel.send(f"Here, have an embed for that:\n{newline.join(fx_converted_links)}", 
+            await message.channel.send(f"{newline.join(fx_converted_links)}", 
                                        reference=message.to_reference(), 
                                        mention_author=False)
         elif link_count <= 5:
-            await message.channel.send(f"Here, have some embeds for those:\n{newline.join(fx_converted_links)}", 
+            await message.channel.send(f"{newline.join(fx_converted_links)}", 
                                        reference=message.to_reference(), 
                                        mention_author=False)
         else:
@@ -91,7 +91,7 @@ async def send_converted_links(message, fx_converted_links):
                 if links_in_queue == 5:
                     links_in_queue = 0
                     if first_msg_sent == False:
-                        await message.channel.send(f"Here, have some embeds for those:\n{newline.join(converted_link_queue)}", 
+                        await message.channel.send(f"{newline.join(converted_link_queue)}", 
                                                    reference=message.to_reference(), 
                                                    mention_author=False)
                         first_msg_sent = True
