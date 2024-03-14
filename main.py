@@ -3,6 +3,7 @@
 import discord
 import os
 from dotenv import load_dotenv
+from discord import app_commands
 
 load_dotenv()
 
@@ -11,10 +12,55 @@ twitter_root_path = "https://twitter.com/"
 fxtwitter_root_path = "https://fxtwitter.com/"
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+MY_GUILD_ID_LIST = os.getenv("MY_GUILD_ID_LIST")
+DEV_ACTIVE = int(os.getenv("DEV_ACTIVE"))
+
+guild_ids = [int(guild_id.strip()) for guild_id in MY_GUILD_ID_LIST.split(",") if guild_id.strip()]
+
+# Took class from: https://github.com/Rapptz/discord.py/blob/master/examples/app_commands/basic.py
+class MyClient(discord.Client):
+    def __init__(self, *, intents: discord.Intents):
+        super().__init__(intents=intents)
+        # A CommandTree is a special type that holds all the application command
+        # state required to make it work. This is a separate class because it
+        # allows all the extra state to be opt-in.
+        # Whenever you want to work with application commands, your tree is used
+        # to store and work with them.
+        # Note: When using commands.Bot instead of discord.Client, the bot will
+        # maintain its own tree instead.
+        self.tree = app_commands.CommandTree(self)
+
+    # In this basic example, we just synchronize the app commands to one guild.
+    # Instead of specifying a guild to every command, we copy over our global commands instead.
+    # By doing so, we don't have to wait up to an hour until they are shown to the end-user.
+    async def setup_hook(self):
+        # This copies the global commands over to your guild.
+        if DEV_ACTIVE == 1:
+            self.tree.copy_global_to(guild=discord.Object(id=guild_ids[0]))
+            await self.tree.sync(guild=discord.Object(id=guild_ids[0]))
+        else:
+            for guild_id in guild_ids:
+                self.tree.copy_global_to(guild=discord.Object(id=guild_id))
+                await self.tree.sync(guild=discord.Object(id=guild_id))
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = discord.Client(intents=intents)
+bot = MyClient(intents=intents)
+
+@bot.tree.command()
+@app_commands.describe(link='Your x.com or twitter.com link(s) you want to convert')
+async def convert(interaction: discord.Interaction, link: str):
+    """Converts up to five x.com or twitter.com links into a fxtwitter.com links (5 links at once is my max)"""
+    x_or_twitter_link_present = False
+    if ((x_root_path in link and link != x_root_path)
+        or (twitter_root_path in link and link != twitter_root_path)):
+        x_or_twitter_link_present = True
+	
+    if x_or_twitter_link_present == True:
+        converted_links = "\n".join(convert_links_to_fxtwitter_root(link))
+        await interaction.response.send_message(f'{converted_links}')
+    else:
+        await interaction.response.send_message(f'Give a link to convert, dummy')
 
 @bot.event
 async def on_ready():
@@ -30,21 +76,21 @@ async def on_ready():
     else:
         print(f"fxtwitter converter is in {server_count} servers.")
 
-@bot.event
-async def on_message(message):
-    x_or_twitter_link_present = False
-    if ((message.author.name == "fxtwitter converter" 
-         or message.author.name == "fxtwitter converter dev") 
-         and message.author.bot == True):
-        return
+# @bot.event
+# async def on_message(message):
+#     x_or_twitter_link_present = False
+#     if ((message.author.name == "fxtwitter converter" 
+#          or message.author.name == "fxtwitter converter dev") 
+#          and message.author.bot == True):
+#         return
 
-    if ((x_root_path in message.content and message.content != x_root_path)
-        or (twitter_root_path in message.content and message.content != twitter_root_path)):
-        x_or_twitter_link_present = True
+#     if ((x_root_path in message.content and message.content != x_root_path)
+#         or (twitter_root_path in message.content and message.content != twitter_root_path)):
+#         x_or_twitter_link_present = True
 	
-    if x_or_twitter_link_present == True:
-        fx_converted_links = convert_links_to_fxtwitter_root(message.content)
-        await send_converted_links(message, fx_converted_links)
+#     if x_or_twitter_link_present == True:
+#         fx_converted_links = convert_links_to_fxtwitter_root(message.content)
+#         await send_converted_links(message, fx_converted_links)
 
 		
 def get_xtwitter_links_from_msg(message):
