@@ -76,21 +76,25 @@ async def on_ready():
     else:
         print(f"fxtwitter converter is in {server_count} servers.")
 
-# @bot.event
-# async def on_message(message):
-#     x_or_twitter_link_present = False
-#     if ((message.author.name == "fxtwitter converter" 
-#          or message.author.name == "fxtwitter converter dev") 
-#          and message.author.bot == True):
-#         return
+@bot.event
+async def on_message(message):
+    referenced_message = None
+    x_or_twitter_link_present = False
 
-#     if ((x_root_path in message.content and message.content != x_root_path)
-#         or (twitter_root_path in message.content and message.content != twitter_root_path)):
-#         x_or_twitter_link_present = True
+    if(not bot.user.mentioned_in(message)):
+        return
+
+    if ((message.reference is not None) and bot.user.mentioned_in(message)):
+        referenced_message = await message.channel.fetch_message(message.reference.message_id)
+
+    if ((referenced_message is not None) 
+        and ((x_root_path in referenced_message.content and referenced_message.content != x_root_path)
+                or (twitter_root_path in referenced_message.content and referenced_message.content != twitter_root_path))):
+        x_or_twitter_link_present = True
 	
-#     if x_or_twitter_link_present == True:
-#         fx_converted_links = convert_links_to_fxtwitter_root(message.content)
-#         await send_converted_links(message, fx_converted_links)
+    if x_or_twitter_link_present == True:
+        fx_converted_links = convert_links_to_fxtwitter_root(referenced_message.content)
+        await send_converted_links(referenced_message, fx_converted_links)
 
 		
 def get_xtwitter_links_from_msg(message):
