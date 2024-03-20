@@ -60,7 +60,7 @@ async def convert(interaction: discord.Interaction, link: str):
         converted_links = "\n".join(convert_links_to_fxtwitter_root(link))
         await interaction.response.send_message(f'{converted_links}')
     else:
-        await interaction.response.send_message(f'Give a link to convert, dummy')
+        await interaction.response.send_message(f'Give a valid link that I can convert, dummy')
 
 @bot.event
 async def on_ready():
